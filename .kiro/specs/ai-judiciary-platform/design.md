@@ -2,7 +2,7 @@
 
 ## Overview
 
-The AI-Enhanced Judiciary Platform is designed as a modern full-stack web application using Django as the backend framework with MySQL for data persistence. The system implements a microservices-oriented architecture within Django, separating concerns into distinct apps for authentication, lawyer management, case prediction, and administration. The frontend uses server-side rendering with Django templates enhanced by Bootstrap for responsive design and Chart.js for data visualization.
+The AI-Enhanced Judiciary Platform is designed as a modern full-stack application with a Flutter mobile/web frontend and Django REST API backend. The system implements a clean separation between the Flutter client and Django backend, with all communication happening through RESTful APIs. The Django backend focuses purely on business logic, data management, and AI processing, while Flutter handles all UI rendering, state management, and user interactions.
 
 The platform integrates with DigiLocker's sandbox API for lawyer verification and implements a custom NLP pipeline using spaCy and scikit-learn for case prediction. The architecture supports horizontal scaling and maintains clear separation between presentation, business logic, and data layers.
 
@@ -12,18 +12,20 @@ The platform integrates with DigiLocker's sandbox API for lawyer verification an
 
 ```mermaid
 graph TB
-    subgraph "Frontend Layer"
-        UI[Bootstrap UI Templates]
-        JS[JavaScript/Chart.js]
+    subgraph "Flutter Frontend"
+        UI[Flutter UI Widgets]
+        STATE[State Management - Bloc/Provider]
+        HTTP[HTTP Client - Dio/http]
+        CHARTS[Charts - fl_chart]
     end
     
-    subgraph "Django Backend"
-        AUTH[Authentication App]
-        LAWYER[Lawyer Management App]
-        CASE[Case Management App]
-        AI[AI Prediction App]
-        ADMIN[Admin App]
-        API[Django REST Framework]
+    subgraph "Django REST API Backend"
+        AUTH[Authentication API]
+        LAWYER[Lawyer Management API]
+        CASE[Case Management API]
+        AI[AI Prediction API]
+        ADMIN[Admin API]
+        DRF[Django REST Framework]
     end
     
     subgraph "External Services"
@@ -35,34 +37,43 @@ graph TB
         NLP[NLP Models/Vectors]
     end
     
-    UI --> AUTH
-    UI --> LAWYER
-    UI --> CASE
-    UI --> AI
-    UI --> ADMIN
+    UI --> STATE
+    STATE --> HTTP
+    HTTP --> DRF
     
-    AUTH --> API
-    LAWYER --> API
-    CASE --> API
-    AI --> API
-    ADMIN --> API
+    DRF --> AUTH
+    DRF --> LAWYER
+    DRF --> CASE
+    DRF --> AI
+    DRF --> ADMIN
     
-    API --> DB
+    AUTH --> DB
+    LAWYER --> DB
     LAWYER --> DL
-    AI --> NLP
+    CASE --> DB
     AI --> DB
+    AI --> NLP
+    ADMIN --> DB
 ```
 
 ### Application Structure
 
-The Django project will be organized into the following apps:
+The application will be organized into two main components:
 
-- **accounts**: User authentication, registration, and role management
-- **lawyers**: Lawyer profiles, verification, and search functionality
-- **cases**: Case management and history tracking
-- **ai_prediction**: NLP pipeline and case prediction logic
-- **admin_panel**: Administrative dashboard and management tools
-- **api**: Django REST Framework endpoints for all apps
+**Django Backend Apps:**
+- **accounts**: User authentication and JWT token management
+- **lawyers**: Lawyer profiles, verification, and search APIs
+- **cases**: Case management and history APIs
+- **ai_prediction**: NLP pipeline and case prediction APIs
+- **admin_panel**: Administrative APIs and management tools
+
+**Flutter Frontend Structure:**
+- **lib/models**: Data models and serialization
+- **lib/services**: API service classes and HTTP clients
+- **lib/screens**: UI screens and pages
+- **lib/widgets**: Reusable UI components
+- **lib/bloc**: State management using BLoC pattern
+- **lib/utils**: Utilities and helpers
 
 ## Components and Interfaces
 
@@ -75,10 +86,10 @@ The Django project will be organized into the following apps:
 - Password reset functionality
 
 **Interfaces:**
-- Login/Register forms with validation
-- Role-based navigation menus
-- Session timeout handling
-- CSRF protection on all forms
+- JWT token-based authentication APIs
+- Login/Register endpoints with validation
+- Token refresh and logout endpoints
+- Role-based API access control
 
 ### DigiLocker Integration
 
@@ -89,10 +100,10 @@ The Django project will be organized into the following apps:
 - Error handling and retry logic
 
 **Interfaces:**
-- DigiLocker authorization redirect
-- Callback URL handling
-- Certificate display and validation UI
-- Verification status indicators
+- DigiLocker authorization API endpoints
+- OAuth callback handling APIs
+- Certificate validation APIs
+- Verification status APIs for Flutter consumption
 
 ### Lawyer Management System
 
@@ -103,10 +114,10 @@ The Django project will be organized into the following apps:
 - Search and filtering engine
 
 **Interfaces:**
-- Profile editing forms
-- Case entry interface
-- Statistics dashboard with Chart.js
-- Search results with pagination
+- Profile CRUD APIs
+- Case management APIs
+- Statistics and analytics APIs
+- Search and filtering APIs with pagination
 
 ### AI Prediction Engine
 
@@ -118,10 +129,10 @@ The Django project will be organized into the following apps:
 - Case matching algorithm
 
 **Interfaces:**
-- Chat-like input interface
-- Real-time prediction display
-- Confidence indicators
-- Suggested arguments presentation
+- Case prediction APIs
+- Real-time prediction endpoints
+- Confidence scoring APIs
+- Suggested arguments APIs
 
 ### Administrative Dashboard
 
@@ -132,10 +143,10 @@ The Django project will be organized into the following apps:
 - Bulk operations support
 
 **Interfaces:**
-- Data tables with sorting/filtering
-- Approval/rejection workflows
-- System statistics dashboard
-- Export functionality
+- Admin management APIs
+- Approval/rejection workflow APIs
+- System statistics APIs
+- Data export APIs
 
 ## Data Models
 
