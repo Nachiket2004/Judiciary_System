@@ -259,11 +259,7 @@ graph TB
         end
         
         subgraph "Ranking Algorithm"
-            WEIGHT_FACTORS[Weight Factors:
-            - Name Match: 30%
-            - Specialization: 25%
-            - Location: 20%
-            - Win Rate: 25%]
+            WEIGHT_FACTORS["Weight Factors:<br/>- Name Match: 30%<br/>- Specialization: 25%<br/>- Location: 20%<br/>- Win Rate: 25%"]
             SORT_RESULTS[Sort by Relevance]
             PAGINATION[Apply Pagination]
         end
@@ -317,13 +313,9 @@ graph TB
         end
         
         subgraph "Calculation Algorithms"
-            WIN_RATE_CALC[Win Rate = (Won Cases / Total Cases) * 100]
+            WIN_RATE_CALC["Win Rate = (Won Cases / Total Cases) * 100"]
             SUCCESS_TREND[Success Trend Calculation]
-            PERFORMANCE_METRICS[Performance Metrics:
-            - Total Cases
-            - Win Percentage
-            - Case Types Distribution
-            - Monthly Performance]
+            PERFORMANCE_METRICS["Performance Metrics:<br/>- Total Cases<br/>- Win Percentage<br/>- Case Types Distribution<br/>- Monthly Performance"]
         end
         
         subgraph "Data Formatting"
