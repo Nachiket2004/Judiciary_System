@@ -365,23 +365,23 @@ graph TB
     
     subgraph "Admin API Layer"
         subgraph "User Management APIs"
-            LIST_USERS[GET /api/admin/users]
-            UPDATE_USER[PUT /api/admin/users/{id}]
-            DELETE_USER[DELETE /api/admin/users/{id}]
-            BULK_USER_OPS[POST /api/admin/users/bulk]
+            LIST_USERS["GET /api/admin/users"]
+            UPDATE_USER["PUT /api/admin/users/{id}"]
+            DELETE_USER["DELETE /api/admin/users/{id}"]
+            BULK_USER_OPS["POST /api/admin/users/bulk"]
         end
         
         subgraph "Lawyer Management APIs"
-            PENDING_LAWYERS[GET /api/admin/lawyers/pending]
-            APPROVE_LAWYER[POST /api/admin/lawyers/{id}/approve]
-            REJECT_LAWYER[POST /api/admin/lawyers/{id}/reject]
-            VERIFICATION_LOGS[GET /api/admin/verification-logs]
+            PENDING_LAWYERS["GET /api/admin/lawyers/pending"]
+            APPROVE_LAWYER["POST /api/admin/lawyers/{id}/approve"]
+            REJECT_LAWYER["POST /api/admin/lawyers/{id}/reject"]
+            VERIFICATION_LOGS["GET /api/admin/verification-logs"]
         end
         
         subgraph "System Monitoring APIs"
-            SYSTEM_STATS[GET /api/admin/stats]
-            CASE_ANALYTICS[GET /api/admin/case-analytics]
-            USER_ACTIVITY[GET /api/admin/user-activity]
+            SYSTEM_STATS["GET /api/admin/stats"]
+            CASE_ANALYTICS["GET /api/admin/case-analytics"]
+            USER_ACTIVITY["GET /api/admin/user-activity"]
         end
     end
     
