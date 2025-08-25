@@ -18,19 +18,43 @@ The AI-Enhanced Judiciary Platform is a comprehensive full-stack web application
 4. IF a user has "admin" role THEN the system SHALL provide access to admin dashboard
 5. WHEN a user logs out THEN the system SHALL clear session data and redirect to login page
 
-### Requirement 2: DigiLocker Integration for Lawyer Verification
+### Requirement 2: Multi-Method Lawyer Verification System
 
-**User Story:** As a lawyer, I want to verify my credentials through DigiLocker so that I can access lawyer-specific features and build trust with potential clients.
+**User Story:** As a lawyer, I want to verify my credentials through multiple practical verification methods so that I can access lawyer-specific features and build trust with potential clients.
+
+**Implementation Note:** After thorough research, DigiLocker API requires government partnership for production deployment, making it unfeasible for academic projects. This system implements practical alternatives that demonstrate equivalent technical competencies while being deployable.
 
 #### Acceptance Criteria
 
-1. WHEN a lawyer initiates verification THEN the system SHALL redirect to DigiLocker OAuth 2.0 authorization
-2. WHEN DigiLocker returns authorization code THEN the system SHALL exchange it for access token
-3. WHEN access token is obtained THEN the system SHALL fetch Bar Council certificate from DigiLocker
-4. IF Bar Council certificate is valid THEN the system SHALL extract lawyer name and Bar ID
-5. WHEN lawyer details are extracted THEN the system SHALL update lawyer profile with verified status
-6. IF verification fails THEN the system SHALL log error and maintain unverified status
-7. WHEN verification is complete THEN the system SHALL store verification log with timestamp and status
+**OCR Document Verification (Primary Method):**
+1. WHEN a lawyer chooses OCR verification THEN the system SHALL accept Bar Council certificate upload (PDF/JPG/PNG, max 10MB)
+2. WHEN certificate is uploaded THEN the system SHALL process it using Tesseract OCR to extract text
+3. WHEN text is extracted THEN the system SHALL parse lawyer details using regex patterns (name, bar ID, registration date)
+4. IF parsing is successful THEN the system SHALL auto-populate lawyer information with confidence score
+5. WHEN lawyer reviews extracted data THEN the system SHALL allow corrections before submission
+6. WHEN verification is submitted THEN the system SHALL queue it for admin review with extracted data and original document
+
+**Mock DigiLocker Integration (Demo Method):**
+7. WHEN lawyer chooses Mock DigiLocker THEN the system SHALL simulate OAuth 2.0 authorization flow
+8. WHEN OAuth simulation completes THEN the system SHALL return mock certificate data for demonstration
+9. WHEN mock data is received THEN the system SHALL auto-approve verification (demo mode only)
+10. WHEN demo verification completes THEN the system SHALL clearly indicate "DEMO MODE" status
+
+**Manual Verification (Fallback Method):**
+11. WHEN lawyer chooses manual verification THEN the system SHALL present form for manual data entry
+12. WHEN manual form is submitted THEN the system SHALL validate required fields (name, bar ID)
+13. WHEN validation passes THEN the system SHALL queue for admin review with manual flag
+
+**Admin Review Workflow:**
+14. WHEN admin accesses verification queue THEN the system SHALL display pending verifications with all submitted data
+15. WHEN admin reviews verification THEN the system SHALL allow approval/rejection with mandatory comments
+16. WHEN admin decision is made THEN the system SHALL update lawyer status and log decision with timestamp
+17. WHEN verification status changes THEN the system SHALL send email notification to lawyer with status and comments
+
+**System Requirements:**
+18. WHEN any verification method is used THEN the system SHALL log all attempts with method, timestamp, and outcome
+19. WHEN verification is complete THEN the system SHALL generate verification badge/certificate for lawyer profile
+20. WHEN verification expires (if applicable) THEN the system SHALL notify lawyer 30 days before expiration
 
 ### Requirement 3: Lawyer Profile and Case History Management
 
