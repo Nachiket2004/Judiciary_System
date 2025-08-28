@@ -594,205 +594,71 @@ mindmap
         Rate Limiting
 ```
 
-## 11. Complete System Architecture Flow with Practical Verification Methods
+## 11. Simplified System Architecture Flow
 
 ```mermaid
 graph TB
-    subgraph "User Interface Layer - Flutter Frontend"
-        subgraph "Authentication Module"
-            LOGIN[Login Screen]
-            REGISTER[Registration Screen]
-            PROFILE[User Profile]
-        end
-        
-        subgraph "Lawyer Verification Module"
-            VERIFY_CHOICE[Verification Method Selection]
-            OCR_UPLOAD[OCR Document Upload]
-            MOCK_DIGILOCKER[Mock DigiLocker Demo]
-            MANUAL_FORM[Manual Verification Form]
-            VERIFY_STATUS[Verification Status Display]
-        end
-        
-        subgraph "Core Features"
-            LAWYER_SEARCH[Lawyer Search & Filter]
-            LAWYER_PROFILE[Lawyer Profile Display]
-            CASE_MGMT[Case Management]
-            AI_CHAT[AI Prediction Chatbot]
-            CHARTS[Statistics & Charts]
-        end
-        
-        subgraph "Admin Interface"
-            ADMIN_DASH[Admin Dashboard]
-            PENDING_REVIEWS[Pending Verifications]
-            USER_MGMT[User Management]
-            SYSTEM_STATS[System Statistics]
-        end
+    subgraph "Flutter Frontend"
+        UI[User Interface]
+        AUTH[Authentication]
+        VERIFY[Lawyer Verification]
+        SEARCH[Lawyer Search]
+        CHAT[AI Chatbot]
+        ADMIN[Admin Panel]
     end
     
-    subgraph "API Gateway Layer - Django REST Framework"
-        subgraph "Authentication APIs"
-            JWT_AUTH[JWT Authentication]
-            USER_API[User Registration/Login]
-            ROLE_CHECK[Role-Based Access Control]
-        end
-        
-        subgraph "Verification APIs"
-            OCR_API[OCR Processing API]
-            MOCK_DL_API[Mock DigiLocker API]
-            MANUAL_API[Manual Verification API]
-            ADMIN_REVIEW_API[Admin Review API]
-        end
-        
-        subgraph "Core Feature APIs"
-            LAWYER_API[Lawyer Management API]
-            SEARCH_API[Search & Filter API]
-            CASE_API[Case Management API]
-            AI_API[AI Prediction API]
-            STATS_API[Statistics API]
-        end
+    subgraph "Django Backend APIs"
+        AUTH_API[Authentication API]
+        VERIFY_API[Verification API]
+        LAWYER_API[Lawyer API]
+        CASE_API[Case API]
+        AI_API[AI Prediction API]
+        ADMIN_API[Admin API]
     end
     
-    subgraph "Business Logic Layer"
-        subgraph "Verification Services"
-            OCR_SERVICE[OCR Text Extraction Service]
-            REGEX_PARSER[Regex Pattern Matching]
-            CONFIDENCE_CALC[Confidence Score Calculator]
-            MOCK_OAUTH[Mock OAuth 2.0 Service]
-            ADMIN_WORKFLOW[Admin Approval Workflow]
-        end
-        
-        subgraph "AI/ML Services"
-            NLP_PIPELINE[spaCy NLP Pipeline]
-            TFIDF_VECTORIZER[TF-IDF Vectorization]
-            SIMILARITY_ENGINE[Cosine Similarity Engine]
-            PREDICTION_MODEL[Case Outcome Prediction]
-            ARGUMENT_GENERATOR[Legal Arguments Generator]
-        end
-        
-        subgraph "Search & Analytics"
-            SEARCH_ENGINE[Multi-Criteria Search Engine]
-            RANKING_ALGO[Relevance Ranking Algorithm]
-            STATS_CALCULATOR[Statistics Calculator]
-            CHART_DATA_PROCESSOR[Chart Data Processor]
-        end
+    subgraph "Core Services"
+        OCR_SERVICE[OCR Processing]
+        MOCK_DL[Mock DigiLocker]
+        NLP_SERVICE[NLP Pipeline]
+        SEARCH_SERVICE[Search Engine]
     end
     
-    subgraph "External Services Integration"
-        subgraph "File Processing"
-            TESSERACT[Tesseract OCR Engine]
-            FILE_VALIDATOR[File Type & Size Validator]
-            IMAGE_PROCESSOR[Image Preprocessing]
-        end
-        
-        subgraph "Communication Services"
-            EMAIL_SERVICE[Email Notification Service]
-            SMS_SERVICE[SMS OTP Service]
-        end
-        
-        subgraph "Mock External APIs"
-            MOCK_DIGILOCKER_OAUTH[Mock DigiLocker OAuth Server]
-            MOCK_CERT_API[Mock Certificate API]
-        end
+    subgraph "External Services"
+        TESSERACT[Tesseract OCR]
+        EMAIL[Email Service]
+        FILE_STORAGE[File Storage]
     end
     
-    subgraph "Data Persistence Layer"
-        subgraph "Primary Database - MySQL"
-            USER_TABLE[(Users Table)]
-            LAWYER_TABLE[(Lawyers Table)]
-            CASE_TABLE[(Cases Table)]
-            VERIFICATION_TABLE[(Verification Logs Table)]
-            PREDICTION_TABLE[(AI Predictions Table)]
-        end
-        
-        subgraph "Caching Layer - Redis"
-            SESSION_CACHE[(Session Cache)]
-            SEARCH_CACHE[(Search Results Cache)]
-            STATS_CACHE[(Statistics Cache)]
-            ML_MODEL_CACHE[(ML Model Cache)]
-        end
-        
-        subgraph "File Storage"
-            CERTIFICATE_STORAGE[(Certificate Documents)]
-            PROFILE_IMAGES[(Profile Images)]
-            CASE_DOCUMENTS[(Case Documents)]
-        end
+    subgraph "Database"
+        MYSQL[(MySQL Database)]
+        REDIS[(Redis Cache)]
     end
     
-    %% User Flow Connections
-    LOGIN --> JWT_AUTH
-    REGISTER --> USER_API
-    VERIFY_CHOICE --> OCR_UPLOAD
-    VERIFY_CHOICE --> MOCK_DIGILOCKER
-    VERIFY_CHOICE --> MANUAL_FORM
+    %% Frontend to API connections
+    AUTH --> AUTH_API
+    VERIFY --> VERIFY_API
+    SEARCH --> LAWYER_API
+    CHAT --> AI_API
+    ADMIN --> ADMIN_API
     
-    %% Verification Flow Connections
-    OCR_UPLOAD --> OCR_API
-    OCR_API --> OCR_SERVICE
+    %% API to Service connections
+    VERIFY_API --> OCR_SERVICE
+    VERIFY_API --> MOCK_DL
+    AI_API --> NLP_SERVICE
+    LAWYER_API --> SEARCH_SERVICE
+    
+    %% Service to External connections
     OCR_SERVICE --> TESSERACT
-    OCR_SERVICE --> REGEX_PARSER
-    REGEX_PARSER --> CONFIDENCE_CALC
-    CONFIDENCE_CALC --> ADMIN_WORKFLOW
+    VERIFY_API --> EMAIL
+    OCR_SERVICE --> FILE_STORAGE
     
-    MOCK_DIGILOCKER --> MOCK_DL_API
-    MOCK_DL_API --> MOCK_OAUTH
-    MOCK_OAUTH --> MOCK_DIGILOCKER_OAUTH
-    
-    MANUAL_FORM --> MANUAL_API
-    MANUAL_API --> ADMIN_WORKFLOW
-    
-    ADMIN_WORKFLOW --> ADMIN_REVIEW_API
-    PENDING_REVIEWS --> ADMIN_REVIEW_API
-    
-    %% Core Feature Connections
-    LAWYER_SEARCH --> SEARCH_API
-    SEARCH_API --> SEARCH_ENGINE
-    SEARCH_ENGINE --> RANKING_ALGO
-    
-    AI_CHAT --> AI_API
-    AI_API --> NLP_PIPELINE
-    NLP_PIPELINE --> TFIDF_VECTORIZER
-    TFIDF_VECTORIZER --> SIMILARITY_ENGINE
-    SIMILARITY_ENGINE --> PREDICTION_MODEL
-    PREDICTION_MODEL --> ARGUMENT_GENERATOR
-    
-    CHARTS --> STATS_API
-    STATS_API --> STATS_CALCULATOR
-    STATS_CALCULATOR --> CHART_DATA_PROCESSOR
-    
-    %% Database Connections
-    USER_API --> USER_TABLE
-    LAWYER_API --> LAWYER_TABLE
-    CASE_API --> CASE_TABLE
-    OCR_SERVICE --> VERIFICATION_TABLE
-    AI_API --> PREDICTION_TABLE
-    
-    %% Caching Connections
-    JWT_AUTH --> SESSION_CACHE
-    SEARCH_ENGINE --> SEARCH_CACHE
-    STATS_CALCULATOR --> STATS_CACHE
-    NLP_PIPELINE --> ML_MODEL_CACHE
-    
-    %% File Storage Connections
-    OCR_SERVICE --> CERTIFICATE_STORAGE
-    LAWYER_API --> PROFILE_IMAGES
-    CASE_API --> CASE_DOCUMENTS
-    
-    %% Notification Connections
-    ADMIN_WORKFLOW --> EMAIL_SERVICE
-    MANUAL_API --> SMS_SERVICE
-    
-    %% Styling
-    classDef frontend fill:#e1f5fe
-    classDef api fill:#f3e5f5
-    classDef service fill:#e8f5e8
-    classDef external fill:#fff3e0
-    classDef database fill:#fce4ec
-    
-    class LOGIN,REGISTER,VERIFY_CHOICE,OCR_UPLOAD,MOCK_DIGILOCKER,MANUAL_FORM,LAWYER_SEARCH,AI_CHAT,CHARTS,ADMIN_DASH frontend
-    class JWT_AUTH,USER_API,OCR_API,MOCK_DL_API,MANUAL_API,LAWYER_API,SEARCH_API,CASE_API,AI_API,STATS_API api
-    class OCR_SERVICE,REGEX_PARSER,CONFIDENCE_CALC,MOCK_OAUTH,ADMIN_WORKFLOW,NLP_PIPELINE,TFIDF_VECTORIZER,SIMILARITY_ENGINE,PREDICTION_MODEL,SEARCH_ENGINE,RANKING_ALGO,STATS_CALCULATOR service
-    class TESSERACT,FILE_VALIDATOR,IMAGE_PROCESSOR,EMAIL_SERVICE,SMS_SERVICE,MOCK_DIGILOCKER_OAUTH,MOCK_CERT_API external
-    class USER_TABLE,LAWYER_TABLE,CASE_TABLE,VERIFICATION_TABLE,PREDICTION_TABLE,SESSION_CACHE,SEARCH_CACHE,STATS_CACHE,ML_MODEL_CACHE,CERTIFICATE_STORAGE,PROFILE_IMAGES,CASE_DOCUMENTS database
+    %% Database connections
+    AUTH_API --> MYSQL
+    VERIFY_API --> MYSQL
+    LAWYER_API --> MYSQL
+    CASE_API --> MYSQL
+    AI_API --> MYSQL
+    SEARCH_SERVICE --> REDIS
 ```
 
 ## 12. Practical Verification Methods Data Flow
@@ -860,84 +726,106 @@ sequenceDiagram
     F->>U: Show "Submitted for Review"
 ```
 
-## 13. AI Prediction System Architecture with Real-World Data Flow
+## 13. AI Prediction System Architecture
 
 ```mermaid
 graph TB
-    subgraph "User Input Processing"
-        CASE_INPUT[User Case Description Input]
-        INPUT_VALIDATION[Input Validation & Sanitization]
-        TEXT_PREPROCESSING[Text Preprocessing Pipeline]
+    subgraph "Input Processing"
+        CASE_INPUT[User Case Description]
+        INPUT_VALIDATION[Input Validation]
+        TEXT_PREPROCESSING[Text Preprocessing]
     end
     
-    subgraph "NLP Processing Pipeline"
+    subgraph "NLP Pipeline"
         TOKENIZATION[spaCy Tokenization]
-        POS_TAGGING[Part-of-Speech Tagging]
-        NER[Named Entity Recognition]
         LEMMATIZATION[Lemmatization]
-        STOP_WORD_REMOVAL[Stop Words Removal]
-        TEXT_NORMALIZATION[Text Normalization]
+        STOP_WORDS[Stop Words Removal]
+        NORMALIZATION[Text Normalization]
     end
     
     subgraph "Feature Engineering"
-        TFIDF_TRANSFORMATION[TF-IDF Vectorization]
+        TFIDF[TF-IDF Vectorization]
         FEATURE_SELECTION[Feature Selection]
-        DIMENSIONALITY_REDUCTION[Dimensionality Reduction]
-        VECTOR_NORMALIZATION[Vector Normalization]
+        VECTOR_NORM[Vector Normalization]
     end
     
-    subgraph "Similarity Matching Engine"
-        HISTORICAL_CASES_DB[(Historical Cases Database)]
-        COSINE_SIMILARITY[Cosine Similarity Calculation]
-        SIMILARITY_THRESHOLD[Similarity Threshold Filter (>0.7)]
-        TOP_K_SELECTION[Top-K Similar Cases Selection]
+    subgraph "Similarity Matching"
+        HISTORICAL_DB[(Historical Cases)]
+        COSINE_SIM[Cosine Similarity]
+        THRESHOLD[Similarity Threshold]
+        TOP_K[Top-K Selection]
     end
     
-    subgraph "Prediction Logic"
-        OUTCOME_AGGREGATION[Outcome Aggregation from Similar Cases]
-        PROBABILITY_CALCULATION["Probability = (Favorable Outcomes / Total Similar Cases)"]
-        CONFIDENCE_SCORING["Confidence = (Similarity Score × Case Count Factor)"]
-        UNCERTAINTY_HANDLING[Handle Low Confidence Predictions]
+    subgraph "Prediction"
+        OUTCOME_AGG[Outcome Aggregation]
+        PROBABILITY[Probability Calculation]
+        CONFIDENCE[Confidence Scoring]
     end
     
-    subgraph "Legal Arguments Generation"
-        PRECEDENT_EXTRACTION[Extract Legal Precedents]
-        ARGUMENT_TEMPLATES[Legal Argument Templates]
-        CONTEXT_MATCHING[Match Arguments to Case Context]
-        ARGUMENT_RANKING[Rank Arguments by Relevance]
-    end
-    
-    subgraph "Response Generation"
-        PREDICTION_FORMATTING[Format Prediction Response]
-        CONFIDENCE_DISPLAY[Display Confidence Metrics]
-        SIMILAR_CASES_LIST[List Similar Cases]
-        SUGGESTED_ARGUMENTS[Present Suggested Arguments]
-        DISCLAIMER[Add Legal Disclaimer]
+    subgraph "Response"
+        FORMAT[Format Response]
+        ARGUMENTS[Legal Arguments]
+        DISPLAY[Display Results]
     end
     
     CASE_INPUT --> INPUT_VALIDATION
     INPUT_VALIDATION --> TEXT_PREPROCESSING
     TEXT_PREPROCESSING --> TOKENIZATION
-    TOKENIZATION --> POS_TAGGING
-    POS_TAGGING --> NER
-    NER --> LEMMATIZATION
-    LEMMATIZATION --> STOP_WORD_REMOVAL
-    STOP_WORD_REMOVAL --> TEXT_NORMALIZATION
+    TOKENIZATION --> LEMMATIZATION
+    LEMMATIZATION --> STOP_WORDS
+    STOP_WORDS --> NORMALIZATION
     
-    TEXT_NORMALIZATION --> TFIDF_TRANSFORMATION
-    TFIDF_TRANSFORMATION --> FEATURE_SELECTION
-    FEATURE_SELECTION --> DIMENSIONALITY_REDUCTION
-    DIMENSIONALITY_REDUCTION --> VECTOR_NORMALIZATION
+    NORMALIZATION --> TFIDF
+    TFIDF --> FEATURE_SELECTION
+    FEATURE_SELECTION --> VECTOR_NORM
     
-    VECTOR_NORMALIZATION --> COSINE_SIMILARITY
-    HISTORICAL_CASES_DB --> COSINE_SIMILARITY
-    COSINE_SIMILARITY --> SIMILARITY_THRESHOLD
-    SIMILARITY_THRESHOLD --> TOP_K_SELECTION
+    VECTOR_NORM --> COSINE_SIM
+    HISTORICAL_DB --> COSINE_SIM
+    COSINE_SIM --> THRESHOLD
+    THRESHOLD --> TOP_K
     
-    TOP_K_SELECTION --> OUTCOME_AGGREGATION
-    OUTCOME_AGGREGATION --> PROBABILITY_CALCULATION
-    PROBABILITY_CALCULATION --> CONFIDENCE_SCORING
-    CONFIDENCE_SCORING --> UNCERTAINTY_HANDLING
+    TOP_K --> OUTCOME_AGG
+    OUTCOME_AGG --> PROBABILITY
+    PROBABILITY --> CONFIDENCE
+    
+    CONFIDENCE --> FORMAT
+    TOP_K --> ARGUMENTS
+    FORMAT --> DISPLAY
+    ARGUMENTS --> DISPLAY
+```
+
+## 14. Security Architecture Overview
+
+```mermaid
+graph TB
+    subgraph "Frontend Security"
+        INPUT_SANITIZATION[Input Sanitization]
+        XSS_PROTECTION[XSS Protection]
+        SECURE_STORAGE[Secure Token Storage]
+    end
+    
+    subgraph "API Security"
+        JWT_VALIDATION[JWT Validation]
+        RATE_LIMITING[Rate Limiting]
+        REQUEST_VALIDATION[Request Validation]
+    end
+    
+    subgraph "Data Security"
+        ENCRYPTION[Data Encryption]
+        FILE_VALIDATION[File Validation]
+        AUDIT_LOGGING[Audit Logging]
+    end
+    
+    INPUT_SANITIZATION --> REQUEST_VALIDATION
+    XSS_PROTECTION --> JWT_VALIDATION
+    SECURE_STORAGE --> RATE_LIMITING
+    
+    JWT_VALIDATION --> ENCRYPTION
+    RATE_LIMITING --> FILE_VALIDATION
+    REQUEST_VALIDATION --> AUDIT_LOGGING
+```
+
+These comprehensive architecture diagrams provide a complete view of the AI-Enhanced Judiciary Platform with practical verification methods that address real-world deployment constraints while maintaining technical depth and academic value.
     
     TOP_K_SELECTION --> PRECEDENT_EXTRACTION
     PRECEDENT_EXTRACTION --> ARGUMENT_TEMPLATES
