@@ -49,6 +49,9 @@ dependencies:
   # Image handling
   image_picker: ^1.0.4
   
+  # File handling
+  file_picker: ^6.1.1
+  
   # Permissions
   permission_handler: ^11.0.1
 

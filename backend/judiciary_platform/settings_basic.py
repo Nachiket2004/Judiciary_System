@@ -146,3 +146,11 @@ CORS_ALLOWED_HEADERS = [
 
 # Create logs directory
 os.makedirs(BASE_DIR / 'logs', exist_ok=True)
+
+# OCR Configuration
+# For Windows, you might need to specify tesseract path
+# TESSERACT_CMD = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+
+# File upload settings
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
