@@ -23,7 +23,8 @@ graph TB
         
         subgraph "Lawyer Management (Tasks 3, 4)"
             LAWYER_API[Lawyer Profile APIs]
-            DIGILOCKER[DigiLocker OAuth Integration]
+            OCR_VERIFICATION[OCR Verification System]
+            MOCK_VERIFICATION[Mock Verification Demo]
             VERIFICATION[Verification Workflow]
         end
         
@@ -46,7 +47,9 @@ graph TB
     end
     
     subgraph "External Services"
-        DIGILOCKER_API[DigiLocker Sandbox API]
+        TESSERACT_OCR[Tesseract OCR Engine]
+        EMAIL_SERVICE[Email Notification Service]
+        FILE_STORAGE[File Storage Service]
     end
     
     subgraph "Data Layer (Task 1)"
@@ -63,7 +66,8 @@ graph TB
     ADMIN_UI --> ADMIN_API
     CHARTS --> STATS_API
     
-    DIGILOCKER --> DIGILOCKER_API
+    OCR_VERIFICATION --> TESSERACT_OCR
+    VERIFICATION --> EMAIL_SERVICE
     LAWYER_API --> MYSQL
     CASE_API --> MYSQL
     NLP_PIPELINE --> MYSQL
@@ -173,42 +177,44 @@ sequenceDiagram
     D->>F: Return Response
 ```
 
-## 4. DigiLocker Integration Architecture (Task 4)
+## 4. Multi-Method Verification System Architecture (Task 4)
 
 ```mermaid
 graph TB
     subgraph "Flutter App"
-        VERIFY_BTN[Verify Credentials Button]
-        WEBVIEW[WebView/URL Launcher]
+        VERIFY_CHOICE[Verification Method Selection]
+        OCR_UPLOAD[OCR Document Upload]
+        MOCK_DEMO[Mock DigiLocker Demo]
+        MANUAL_FORM[Manual Entry Form]
         STATUS_UI[Verification Status UI]
     end
     
     subgraph "Django Backend"
-        subgraph "OAuth Flow"
-            AUTH_INIT[Initialize OAuth]
-            STATE_GEN[Generate State Parameter]
-            CALLBACK[OAuth Callback Handler]
-            TOKEN_EXCHANGE[Authorization Code Exchange]
+        subgraph "OCR Processing"
+            FILE_UPLOAD[File Upload Handler]
+            OCR_EXTRACT[OCR Text Extraction]
+            REGEX_PARSE[Regex Pattern Matching]
+            CONFIDENCE_CALC[Confidence Calculation]
         end
         
-        subgraph "Certificate Processing"
-            CERT_FETCH[Fetch Bar Council Certificate]
-            CERT_PARSE[Parse Certificate Data]
-            EXTRACT_INFO[Extract Lawyer Details]
-            VALIDATE[Validate Certificate]
+        subgraph "Mock Demo System"
+            MOCK_OAUTH[Mock OAuth Simulation]
+            MOCK_CERT[Mock Certificate Generator]
+            AUTO_APPROVE[Auto Approval for Demo]
         end
         
         subgraph "Verification Logic"
+            ADMIN_QUEUE[Admin Review Queue]
             UPDATE_STATUS[Update Lawyer Status]
             LOG_ATTEMPT[Log Verification Attempt]
-            NOTIFY_ADMIN[Notify Admin if Failed]
+            SEND_NOTIFICATION[Send Email Notification]
         end
     end
     
-    subgraph "DigiLocker API"
-        OAUTH_SERVER[OAuth Authorization Server]
-        DOCUMENT_API[Document Fetch API]
-        CERTIFICATE_STORE[Certificate Repository]
+    subgraph "External Services"
+        TESSERACT[Tesseract OCR Engine]
+        EMAIL_SVC[Email Service]
+        FILE_STORE[File Storage]
     end
     
     subgraph "Database"
@@ -216,22 +222,32 @@ graph TB
         VERIFICATION_LOG[(Verification Logs)]
     end
     
-    VERIFY_BTN --> AUTH_INIT
-    AUTH_INIT --> STATE_GEN
-    STATE_GEN --> WEBVIEW
-    WEBVIEW --> OAUTH_SERVER
-    OAUTH_SERVER --> CALLBACK
-    CALLBACK --> TOKEN_EXCHANGE
-    TOKEN_EXCHANGE --> CERT_FETCH
-    CERT_FETCH --> DOCUMENT_API
-    DOCUMENT_API --> CERTIFICATE_STORE
-    CERTIFICATE_STORE --> CERT_PARSE
-    CERT_PARSE --> EXTRACT_INFO
-    EXTRACT_INFO --> VALIDATE
-    VALIDATE --> UPDATE_STATUS
+    VERIFY_CHOICE --> OCR_UPLOAD
+    VERIFY_CHOICE --> MOCK_DEMO
+    VERIFY_CHOICE --> MANUAL_FORM
+    
+    OCR_UPLOAD --> FILE_UPLOAD
+    FILE_UPLOAD --> OCR_EXTRACT
+    OCR_EXTRACT --> TESSERACT
+    OCR_EXTRACT --> REGEX_PARSE
+    REGEX_PARSE --> CONFIDENCE_CALC
+    CONFIDENCE_CALC --> ADMIN_QUEUE
+    
+    MOCK_DEMO --> MOCK_OAUTH
+    MOCK_OAUTH --> MOCK_CERT
+    MOCK_CERT --> AUTO_APPROVE
+    
+    MANUAL_FORM --> ADMIN_QUEUE
+    
+    ADMIN_QUEUE --> UPDATE_STATUS
+    AUTO_APPROVE --> UPDATE_STATUS
     UPDATE_STATUS --> LAWYER_TABLE
-    VALIDATE --> LOG_ATTEMPT
+    UPDATE_STATUS --> LOG_ATTEMPT
     LOG_ATTEMPT --> VERIFICATION_LOG
+    UPDATE_STATUS --> SEND_NOTIFICATION
+    SEND_NOTIFICATION --> EMAIL_SVC
+    FILE_UPLOAD --> FILE_STORE
+    
     UPDATE_STATUS --> STATUS_UI
 ```
 
@@ -466,11 +482,14 @@ erDiagram
     VERIFICATION_LOGS {
         int id PK
         int lawyer_id FK
-        string verification_type
+        string verification_method
         enum status
-        json digilocker_response
-        text error_message
+        json extracted_data
+        text admin_comments
+        text raw_ocr_text
+        decimal confidence_score
         datetime created_at
+        datetime reviewed_at
     }
     
     AI_PREDICTIONS {
@@ -504,7 +523,7 @@ gantt
     
     section Core Features
     Task 3 - Lawyer Profiles          :t3, after t2, 3
-    Task 4 - DigiLocker Integration   :t4, after t3, 5
+    Task 4 - Multi-Method Verification :t4, after t3, 5
     Task 5 - Case Management          :t5, after t3, 3
     Task 6 - Lawyer Search            :t6, after t5, 3
     Task 7 - Data Visualization       :t7, after t5, 3
@@ -577,11 +596,15 @@ mindmap
         Query Optimization
         Performance
     External Services
-      DigiLocker
-        OAuth 2.0
-        Certificate Validation
-        Document Fetching
-        Sandbox Environment
+      OCR Processing
+        Tesseract Engine
+        Text Extraction
+        Pattern Matching
+        Confidence Scoring
+      Communication
+        Email Service
+        SMS Service
+        File Storage
     Security
       Authentication
         JWT Tokens
@@ -816,6 +839,12 @@ graph TB
         AUDIT_LOGGING[Audit Logging]
     end
     
+    subgraph "Verification Security"
+        OCR_VALIDATION[OCR Result Validation]
+        ADMIN_APPROVAL[Admin Approval Required]
+        VERIFICATION_AUDIT[Verification Audit Trail]
+    end
+    
     INPUT_SANITIZATION --> REQUEST_VALIDATION
     XSS_PROTECTION --> JWT_VALIDATION
     SECURE_STORAGE --> RATE_LIMITING
@@ -823,89 +852,10 @@ graph TB
     JWT_VALIDATION --> ENCRYPTION
     RATE_LIMITING --> FILE_VALIDATION
     REQUEST_VALIDATION --> AUDIT_LOGGING
+    
+    FILE_VALIDATION --> OCR_VALIDATION
+    OCR_VALIDATION --> ADMIN_APPROVAL
+    ADMIN_APPROVAL --> VERIFICATION_AUDIT
 ```
 
 These comprehensive architecture diagrams provide a complete view of the AI-Enhanced Judiciary Platform with practical verification methods that address real-world deployment constraints while maintaining technical depth and academic value.
-    
-    TOP_K_SELECTION --> PRECEDENT_EXTRACTION
-    PRECEDENT_EXTRACTION --> ARGUMENT_TEMPLATES
-    ARGUMENT_TEMPLATES --> CONTEXT_MATCHING
-    CONTEXT_MATCHING --> ARGUMENT_RANKING
-    
-    UNCERTAINTY_HANDLING --> PREDICTION_FORMATTING
-    CONFIDENCE_SCORING --> CONFIDENCE_DISPLAY
-    TOP_K_SELECTION --> SIMILAR_CASES_LIST
-    ARGUMENT_RANKING --> SUGGESTED_ARGUMENTS
-    
-    PREDICTION_FORMATTING --> DISCLAIMER
-    CONFIDENCE_DISPLAY --> DISCLAIMER
-    SIMILAR_CASES_LIST --> DISCLAIMER
-    SUGGESTED_ARGUMENTS --> DISCLAIMER
-```
-
-## 14. Security Architecture and Data Protection Flow
-
-```mermaid
-graph TB
-    subgraph "Frontend Security Layer"
-        INPUT_SANITIZATION[Input Sanitization]
-        XSS_PROTECTION[XSS Protection]
-        SECURE_STORAGE[Secure Token Storage]
-        HTTPS_ENFORCEMENT[HTTPS Enforcement]
-    end
-    
-    subgraph "API Security Layer"
-        JWT_VALIDATION[JWT Token Validation]
-        RATE_LIMITING[API Rate Limiting]
-        CORS_POLICY[CORS Policy Enforcement]
-        REQUEST_VALIDATION[Request Validation]
-    end
-    
-    subgraph "Authentication & Authorization"
-        MULTI_FACTOR_AUTH[Multi-Factor Authentication]
-        ROLE_BASED_ACCESS[Role-Based Access Control]
-        SESSION_MANAGEMENT[Session Management]
-        PASSWORD_POLICY[Password Policy Enforcement]
-    end
-    
-    subgraph "Data Protection"
-        ENCRYPTION_AT_REST[Database Encryption at Rest]
-        ENCRYPTION_IN_TRANSIT[Data Encryption in Transit]
-        PII_ANONYMIZATION[PII Data Anonymization]
-        AUDIT_LOGGING[Comprehensive Audit Logging]
-    end
-    
-    subgraph "File Security"
-        FILE_TYPE_VALIDATION[File Type Validation]
-        VIRUS_SCANNING[Virus/Malware Scanning]
-        SIZE_LIMITS[File Size Limits]
-        SECURE_UPLOAD[Secure File Upload]
-    end
-    
-    subgraph "Verification Security"
-        OCR_VALIDATION[OCR Result Validation]
-        CERTIFICATE_INTEGRITY[Certificate Integrity Check]
-        ADMIN_APPROVAL[Mandatory Admin Approval]
-        VERIFICATION_AUDIT[Verification Audit Trail]
-    end
-    
-    INPUT_SANITIZATION --> REQUEST_VALIDATION
-    XSS_PROTECTION --> CORS_POLICY
-    SECURE_STORAGE --> JWT_VALIDATION
-    HTTPS_ENFORCEMENT --> ENCRYPTION_IN_TRANSIT
-    
-    JWT_VALIDATION --> ROLE_BASED_ACCESS
-    RATE_LIMITING --> SESSION_MANAGEMENT
-    REQUEST_VALIDATION --> PASSWORD_POLICY
-    
-    ROLE_BASED_ACCESS --> ENCRYPTION_AT_REST
-    SESSION_MANAGEMENT --> PII_ANONYMIZATION
-    PASSWORD_POLICY --> AUDIT_LOGGING
-    
-    FILE_TYPE_VALIDATION --> OCR_VALIDATION
-    VIRUS_SCANNING --> CERTIFICATE_INTEGRITY
-    SIZE_LIMITS --> ADMIN_APPROVAL
-    SECURE_UPLOAD --> VERIFICATION_AUDIT
-```
-
-These comprehensive architecture diagrams provide a complete view of how the practical verification system integrates with the overall platform, showing the realistic implementation approach that addresses the DigiLocker partnership constraints while maintaining technical depth and academic value.
