@@ -1,46 +1,104 @@
-import 'dart:io';
 import 'package:dio/dio.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/services/auth_service.dart';
 
-class VerificationService {
+class LawyerService {
   final Dio _dio = Dio();
+  final AuthService _authService = AuthService();
 
-  VerificationService() {
+  LawyerService() {
     _dio.options.baseUrl = ApiConstants.baseUrl;
     _dio.options.connectTimeout = const Duration(seconds: 30);
     _dio.options.receiveTimeout = const Duration(seconds: 30);
   }
 
   Future<String?> _getToken() async {
-    // Import auth service to get token
-    final authService = AuthService();
-    return await authService.getAccessToken();
+    return await _authService.getAccessToken();
   }
 
-  Future<Map<String, dynamic>> verifyWithOCR(File certificateFile) async {
+  Future<Map<String, dynamic>> getLawyerProfile() async {
     try {
-      String fileName = certificateFile.path.split('/').last;
+      String? token = await _getToken();
+      Options options = Options(
+        headers: {
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+
+      Response response = await _dio.get(
+        '/api/lawyers/profile/',
+        options: options,
+      );
+
+      return {
+        'success': true,
+        'data': response.data,
+      };
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'error': _handleDioError(e),
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Failed to fetch lawyer profile: $e',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> updateLawyerProfile(Map<String, dynamic> profileData) async {
+    try {
+      String? token = await _getToken();
+      Options options = Options(
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+
+      Response response = await _dio.put(
+        '/api/lawyers/profile/update/',
+        data: profileData,
+        options: options,
+      );
+
+      return {
+        'success': true,
+        'data': response.data,
+      };
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'error': _handleDioError(e),
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Failed to update lawyer profile: $e',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> searchLawyers({
+    String? name,
+    String? specialization,
+    String? location,
+    int? minExperience,
+    int page = 1,
+  }) async {
+    try {
+      Map<String, dynamic> queryParams = {};
       
-      FormData formData = FormData.fromMap({
-        'certificate': await MultipartFile.fromFile(
-          certificateFile.path,
-          filename: fileName,
-        ),
-      });
+      if (name != null && name.isNotEmpty) queryParams['name'] = name;
+      if (specialization != null && specialization.isNotEmpty) queryParams['specialization'] = specialization;
+      if (location != null && location.isNotEmpty) queryParams['location'] = location;
+      if (minExperience != null) queryParams['min_experience'] = minExperience;
+      queryParams['page'] = page;
 
-      String? token = await _getToken();
-      Options options = Options(
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      );
-
-      Response response = await _dio.post(
-        '/api/lawyers/verify/ocr/',
-        data: formData,
-        options: options,
+      Response response = await _dio.get(
+        '/api/lawyers/search/',
+        queryParameters: queryParams,
       );
 
       return {
@@ -55,80 +113,12 @@ class VerificationService {
     } catch (e) {
       return {
         'success': false,
-        'error': 'OCR verification failed: $e',
+        'error': 'Failed to search lawyers: $e',
       };
     }
   }
 
-  Future<Map<String, dynamic>> verifyWithMockDigiLocker(
-      Map<String, dynamic> lawyerData) async {
-    try {
-      String? token = await _getToken();
-      Options options = Options(
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      );
-
-      Response response = await _dio.post(
-        '/api/lawyers/verify/mock-digilocker/',
-        data: lawyerData,
-        options: options,
-      );
-
-      return {
-        'success': true,
-        'data': response.data,
-      };
-    } on DioException catch (e) {
-      return {
-        'success': false,
-        'error': _handleDioError(e),
-      };
-    } catch (e) {
-      return {
-        'success': false,
-        'error': 'Mock DigiLocker verification failed: $e',
-      };
-    }
-  }
-
-  Future<Map<String, dynamic>> verifyManually(
-      Map<String, dynamic> lawyerData) async {
-    try {
-      String? token = await _getToken();
-      Options options = Options(
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      );
-
-      Response response = await _dio.post(
-        '/api/lawyers/verify/manual/',
-        data: lawyerData,
-        options: options,
-      );
-
-      return {
-        'success': true,
-        'data': response.data,
-      };
-    } on DioException catch (e) {
-      return {
-        'success': false,
-        'error': _handleDioError(e),
-      };
-    } catch (e) {
-      return {
-        'success': false,
-        'error': 'Manual verification failed: $e',
-      };
-    }
-  }
-
-  Future<Map<String, dynamic>> getVerificationStatus() async {
+  Future<Map<String, dynamic>> getLawyerCases() async {
     try {
       String? token = await _getToken();
       Options options = Options(
@@ -138,7 +128,7 @@ class VerificationService {
       );
 
       Response response = await _dio.get(
-        '/api/lawyers/verification/status/',
+        '/api/cases/',
         options: options,
       );
 
@@ -154,44 +144,12 @@ class VerificationService {
     } catch (e) {
       return {
         'success': false,
-        'error': 'Failed to fetch verification status: $e',
+        'error': 'Failed to fetch cases: $e',
       };
     }
   }
 
-  Future<Map<String, dynamic>> getPendingVerifications() async {
-    try {
-      String? token = await _getToken();
-      Options options = Options(
-        headers: {
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      );
-
-      Response response = await _dio.get(
-        '/api/lawyers/admin/verifications/pending/',
-        options: options,
-      );
-
-      return {
-        'success': true,
-        'data': response.data,
-      };
-    } on DioException catch (e) {
-      return {
-        'success': false,
-        'error': _handleDioError(e),
-      };
-    } catch (e) {
-      return {
-        'success': false,
-        'error': 'Failed to fetch pending verifications: $e',
-      };
-    }
-  }
-
-  Future<Map<String, dynamic>> reviewVerification(
-      int verificationId, String action, String comments) async {
+  Future<Map<String, dynamic>> createCase(Map<String, dynamic> caseData) async {
     try {
       String? token = await _getToken();
       Options options = Options(
@@ -202,11 +160,8 @@ class VerificationService {
       );
 
       Response response = await _dio.post(
-        '/api/lawyers/admin/verifications/$verificationId/review/',
-        data: {
-          'action': action,
-          'comments': comments,
-        },
+        '/api/cases/',
+        data: caseData,
         options: options,
       );
 
@@ -222,7 +177,71 @@ class VerificationService {
     } catch (e) {
       return {
         'success': false,
-        'error': 'Failed to review verification: $e',
+        'error': 'Failed to create case: $e',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> updateCase(int caseId, Map<String, dynamic> caseData) async {
+    try {
+      String? token = await _getToken();
+      Options options = Options(
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+
+      Response response = await _dio.put(
+        '/api/cases/$caseId/',
+        data: caseData,
+        options: options,
+      );
+
+      return {
+        'success': true,
+        'data': response.data,
+      };
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'error': _handleDioError(e),
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Failed to update case: $e',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> deleteCase(int caseId) async {
+    try {
+      String? token = await _getToken();
+      Options options = Options(
+        headers: {
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+
+      Response response = await _dio.delete(
+        '/api/cases/$caseId/',
+        options: options,
+      );
+
+      return {
+        'success': true,
+        'data': response.data,
+      };
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'error': _handleDioError(e),
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Failed to delete case: $e',
       };
     }
   }
